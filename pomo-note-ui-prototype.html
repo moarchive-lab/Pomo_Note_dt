@@ -1,0 +1,794 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pomo Note Prototype</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: oklch(0.973 0.007 248);
+      --surface: oklch(0.996 0.004 248);
+      --surface-soft: oklch(0.955 0.012 248);
+      --surface-tint: oklch(0.94 0.025 210);
+      --text: oklch(0.235 0.025 252);
+      --muted: oklch(0.49 0.026 252);
+      --line: oklch(0.86 0.017 250);
+      --accent: oklch(0.58 0.17 243);
+      --accent-strong: oklch(0.49 0.16 246);
+      --accent-soft: oklch(0.93 0.045 240);
+      --danger: oklch(0.52 0.17 26);
+      --rest-bg: oklch(0.976 0.018 92);
+      --shadow: 0 18px 50px oklch(0.28 0.03 250 / 0.13);
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: oklch(0.72 0.05 245);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: oklch(0.99 0.004 248);
+      font-weight: 700;
+    }
+
+    button.primary:hover {
+      background: var(--accent-strong);
+    }
+
+    button.danger {
+      border-color: oklch(0.83 0.075 28);
+      color: var(--danger);
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px oklch(0.58 0.17 243 / 0.16);
+    }
+
+    .app {
+      width: min(920px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 22px 0 30px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .video-shell {
+      position: relative;
+      display: grid;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 7px;
+      background: oklch(0.22 0.028 248);
+      color: oklch(0.88 0.015 248);
+    }
+
+    #player,
+    #player iframe {
+      width: 100%;
+      height: 100%;
+    }
+
+    .empty-player {
+      max-width: 34ch;
+      padding: 20px;
+      text-align: center;
+      color: oklch(0.83 0.018 248);
+    }
+
+    .url-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .actions,
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .actions {
+      margin-top: 10px;
+    }
+
+    .status-line {
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .timer-display {
+      display: grid;
+      min-height: 190px;
+      margin-bottom: 12px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      text-align: center;
+    }
+
+    .phase {
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .time {
+      font-size: 64px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cycle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .preset-row {
+      margin-bottom: 10px;
+    }
+
+    .preset-row button.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-weight: 700;
+    }
+
+    .checklist-panel {
+      grid-column: 1 / -1;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: oklch(0.982 0.006 248);
+      padding: 10px;
+    }
+
+    .task-main {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .task-main input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+    }
+
+    .task-main input[type="text"] {
+      border: 0;
+      background: transparent;
+      padding: 7px 4px;
+      box-shadow: none;
+    }
+
+    .task textarea {
+      min-height: 56px;
+      resize: vertical;
+    }
+
+    .rest-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      background: var(--rest-bg);
+      color: var(--text);
+    }
+
+    .rest-overlay.active {
+      display: flex;
+    }
+
+    .rest-box {
+      width: min(720px, 100%);
+      text-align: center;
+    }
+
+    .rest-box h1 {
+      margin: 0 0 16px;
+      font-size: 48px;
+      letter-spacing: 0;
+    }
+
+    .rest-time {
+      margin-bottom: 22px;
+      font-size: 92px;
+      line-height: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rest-box p {
+      max-width: 58ch;
+      margin: 0 auto 20px;
+      color: var(--muted);
+    }
+
+    .mini-player {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 10;
+      display: none;
+      width: min(360px, calc(100vw - 40px));
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .mini-player.active {
+      display: block;
+    }
+
+    .mini-player .video-shell {
+      border-radius: 0;
+    }
+
+    .mini-note {
+      border-top: 1px solid var(--line);
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        width: min(100vw - 24px, 680px);
+        padding-top: 14px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .url-row {
+        grid-template-columns: 1fr;
+      }
+
+      .time {
+        font-size: 52px;
+      }
+
+      .rest-box h1 {
+        font-size: 34px;
+      }
+
+      .rest-time {
+        font-size: 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <strong>Pomo Note</strong>
+        <span>Chrome에서 바로 여는 HTML 프로토타입입니다. 입력값은 저장하지 않습니다.</span>
+      </div>
+      <button id="resetButton" type="button">초기화</button>
+    </header>
+
+    <section class="layout" aria-label="Pomo Note prototype">
+      <section class="panel" aria-labelledby="videoTitle">
+        <div class="panel-header">
+          <h2 id="videoTitle">영상</h2>
+          <button id="miniToggle" type="button">미니 플레이어</button>
+        </div>
+        <div class="panel-body">
+          <div class="video-shell" id="videoShell">
+            <div id="player"><div class="empty-player">YouTube 링크를 넣고 불러오기를 누르세요.</div></div>
+          </div>
+          <div class="url-row">
+            <input id="youtubeUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+            <button id="loadVideo" class="primary" type="button">불러오기</button>
+          </div>
+          <div class="actions">
+            <button id="playVideo" type="button">재생</button>
+            <button id="pauseVideo" type="button">일시정지</button>
+            <button id="manualPlay" class="primary" type="button" hidden>직접 재생</button>
+          </div>
+          <div class="status-line" id="videoStatus">YouTube API를 불러오는 중입니다.</div>
+        </div>
+      </section>
+
+      <aside class="panel" aria-labelledby="timerTitle">
+        <div class="panel-header">
+          <h2 id="timerTitle">타이머</h2>
+          <span id="modeBadge" class="status-line">대기</span>
+        </div>
+        <div class="panel-body">
+          <div class="preset-row" aria-label="프리셋 선택">
+            <button id="preset25" class="active" type="button">25 / 5 / 15</button>
+            <button id="preset50" type="button">50 / 10 / 30</button>
+            <button id="preset90" type="button">90 / 15 / 45</button>
+          </div>
+          <div class="timer-display">
+            <div>
+              <div class="phase" id="phaseLabel">집중 준비</div>
+              <div class="time" id="timeLabel">25:00</div>
+              <div class="cycle" id="cycleLabel">집중 1 / 4</div>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="startFocus" class="primary" type="button">집중 시작</button>
+            <button id="stopTimer" class="danger" type="button">정지</button>
+          </div>
+          <div class="status-line" id="timerStatus">프로토타입에서는 창이 열려 있는 동안만 타이머가 유지됩니다.</div>
+        </div>
+      </aside>
+
+      <section class="panel checklist-panel" aria-labelledby="taskTitle">
+        <div class="panel-header">
+          <h2 id="taskTitle">체크리스트와 짧은 메모</h2>
+          <button id="addTask" type="button">항목 추가</button>
+        </div>
+        <div class="panel-body">
+          <div id="checklist" class="checklist"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <section id="restOverlay" class="rest-overlay" aria-live="polite">
+    <div class="rest-box">
+      <h1>휴식 시간</h1>
+      <div id="restTime" class="rest-time">05:00</div>
+      <p>영상은 일시정지를 시도했습니다. 휴식이 끝나면 집중으로 자동 전환되며 재생을 다시 시도합니다.</p>
+    </div>
+  </section>
+
+  <aside id="miniPlayer" class="mini-player" aria-label="Mini player preview">
+    <div class="panel-header">
+      <h2>미니 플레이어</h2>
+      <button id="closeMini" type="button">닫기</button>
+    </div>
+    <div class="video-shell">
+      <div class="empty-player">Electron 구현에서는 별도 창으로 분리할 자리입니다.</div>
+    </div>
+    <div class="mini-note">HTML 프로토타입에서는 실제 플레이어를 복제하지 않고 위치와 흐름만 확인합니다.</div>
+  </aside>
+
+  <script>
+    const state = {
+      preset: { focus: 25, shortBreak: 5, longBreak: 15 },
+      phase: "idle",
+      secondsLeft: 25 * 60,
+      focusRound: 1,
+      timerId: null,
+      apiReady: false,
+      player: null,
+      playerReady: false,
+      currentVideoId: null
+    };
+
+    const elements = {
+      youtubeUrl: document.getElementById("youtubeUrl"),
+      loadVideo: document.getElementById("loadVideo"),
+      videoStatus: document.getElementById("videoStatus"),
+      manualPlay: document.getElementById("manualPlay"),
+      playVideo: document.getElementById("playVideo"),
+      pauseVideo: document.getElementById("pauseVideo"),
+      preset25: document.getElementById("preset25"),
+      preset50: document.getElementById("preset50"),
+      preset90: document.getElementById("preset90"),
+      phaseLabel: document.getElementById("phaseLabel"),
+      timeLabel: document.getElementById("timeLabel"),
+      cycleLabel: document.getElementById("cycleLabel"),
+      modeBadge: document.getElementById("modeBadge"),
+      timerStatus: document.getElementById("timerStatus"),
+      startFocus: document.getElementById("startFocus"),
+      stopTimer: document.getElementById("stopTimer"),
+      restOverlay: document.getElementById("restOverlay"),
+      restTime: document.getElementById("restTime"),
+      checklist: document.getElementById("checklist"),
+      addTask: document.getElementById("addTask"),
+      resetButton: document.getElementById("resetButton"),
+      miniToggle: document.getElementById("miniToggle"),
+      miniPlayer: document.getElementById("miniPlayer"),
+      closeMini: document.getElementById("closeMini"),
+      videoShell: document.getElementById("videoShell")
+    };
+
+    function loadYouTubeApi() {
+      if (window.YT && window.YT.Player) {
+        window.onYouTubeIframeAPIReady();
+        return;
+      }
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+
+    window.onYouTubeIframeAPIReady = () => {
+      state.apiReady = true;
+      elements.videoStatus.textContent = "YouTube API 준비 완료. 링크를 넣고 불러오세요.";
+    };
+
+    function extractVideoId(input) {
+      const value = input.trim();
+      if (!value) return null;
+      if (/^[a-zA-Z0-9_-]{11}$/.test(value)) return value;
+
+      try {
+        const url = new URL(value);
+        if (url.hostname === "youtu.be") return url.pathname.slice(1).split("/")[0] || null;
+        if (url.hostname.endsWith("youtube.com")) {
+          if (url.pathname === "/watch") return url.searchParams.get("v");
+          const parts = url.pathname.split("/").filter(Boolean);
+          if (["embed", "shorts", "live"].includes(parts[0])) return parts[1] || null;
+        }
+      } catch (error) {
+        return null;
+      }
+
+      return null;
+    }
+
+    function ensurePlayerHost() {
+      if (document.getElementById("player")) return;
+      elements.videoShell.innerHTML = '<div id="player"><div class="empty-player">YouTube 링크를 넣고 불러오기를 누르세요.</div></div>';
+    }
+
+    function loadVideo() {
+      const videoId = extractVideoId(elements.youtubeUrl.value);
+      if (!videoId) {
+        elements.videoStatus.textContent = "유효한 YouTube 링크가 아닙니다.";
+        return;
+      }
+      if (!state.apiReady || !window.YT || !window.YT.Player) {
+        elements.videoStatus.textContent = "YouTube API를 아직 불러오는 중입니다. 잠시 뒤 다시 시도하세요.";
+        return;
+      }
+
+      state.currentVideoId = videoId;
+      ensurePlayerHost();
+
+      if (state.player) {
+        state.playerReady = true;
+        state.player.cueVideoById(videoId);
+        elements.videoStatus.textContent = "영상을 불러왔습니다. 집중 시작 또는 재생을 누르세요.";
+        return;
+      }
+
+      state.player = new YT.Player("player", {
+        videoId,
+        width: "100%",
+        height: "100%",
+        playerVars: {
+          playsinline: 1,
+          rel: 0,
+          modestbranding: 1
+        },
+        events: {
+          onReady: () => {
+            state.playerReady = true;
+            elements.videoStatus.textContent = "영상 준비 완료. 집중 시작 또는 재생을 누르세요.";
+          },
+          onStateChange: (event) => {
+            const isPlaying = window.YT && event.data === YT.PlayerState.PLAYING;
+            elements.manualPlay.hidden = isPlaying;
+          }
+        }
+      });
+    }
+
+    function tryPlayVideo() {
+      if (!state.playerReady || !state.player) {
+        elements.videoStatus.textContent = "먼저 영상을 불러오세요.";
+        return;
+      }
+      try {
+        state.player.playVideo();
+        elements.videoStatus.textContent = "재생을 시도했습니다. Chrome이 막으면 직접 재생 버튼을 누르세요.";
+        elements.manualPlay.hidden = false;
+      } catch (error) {
+        elements.videoStatus.textContent = "자동 재생이 막혔습니다. 직접 재생 버튼을 누르세요.";
+        elements.manualPlay.hidden = false;
+      }
+    }
+
+    function pauseVideo() {
+      if (!state.playerReady || !state.player) return;
+      state.player.pauseVideo();
+      elements.videoStatus.textContent = "영상을 일시정지했습니다.";
+    }
+
+    function setPreset(focus, shortBreak, longBreak) {
+      clearInterval(state.timerId);
+      state.timerId = null;
+      state.preset = { focus, shortBreak, longBreak };
+      state.phase = "idle";
+      state.secondsLeft = focus * 60;
+      state.focusRound = 1;
+      elements.preset25.classList.toggle("active", focus === 25);
+      elements.preset50.classList.toggle("active", focus === 50);
+      elements.preset90.classList.toggle("active", focus === 90);
+      elements.restOverlay.classList.remove("active");
+      elements.timerStatus.textContent = `${focus}분 집중 프리셋으로 바꿨습니다.`;
+      renderTimer();
+    }
+
+    function formatTime(totalSeconds) {
+      const safeSeconds = Math.max(0, totalSeconds);
+      const minutes = Math.floor(safeSeconds / 60).toString().padStart(2, "0");
+      const seconds = (safeSeconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function phaseName() {
+      if (state.phase === "focus") return "집중 중";
+      if (state.phase === "shortBreak") return "짧은 휴식";
+      if (state.phase === "longBreak") return "긴 휴식";
+      return "집중 준비";
+    }
+
+    function renderTimer() {
+      elements.phaseLabel.textContent = phaseName();
+      elements.timeLabel.textContent = formatTime(state.secondsLeft);
+      elements.restTime.textContent = formatTime(state.secondsLeft);
+      elements.cycleLabel.textContent = `집중 ${state.focusRound} / 4`;
+      elements.modeBadge.textContent = state.phase === "idle" ? "대기" : phaseName();
+      elements.restOverlay.classList.toggle("active", state.phase === "shortBreak" || state.phase === "longBreak");
+    }
+
+    function runTimer() {
+      clearInterval(state.timerId);
+      state.timerId = setInterval(() => {
+        state.secondsLeft -= 1;
+        if (state.secondsLeft <= 0) {
+          moveToNextPhase();
+          return;
+        }
+        renderTimer();
+      }, 1000);
+    }
+
+    function startFocus() {
+      state.phase = "focus";
+      state.secondsLeft = state.preset.focus * 60;
+      elements.timerStatus.textContent = "집중을 시작했습니다. 영상 재생을 시도합니다.";
+      elements.restOverlay.classList.remove("active");
+      tryPlayVideo();
+      renderTimer();
+      runTimer();
+    }
+
+    function startBreak(forceLong = false) {
+      const isLong = forceLong || state.focusRound >= 4;
+      state.phase = isLong ? "longBreak" : "shortBreak";
+      state.secondsLeft = (isLong ? state.preset.longBreak : state.preset.shortBreak) * 60;
+      elements.timerStatus.textContent = isLong ? "긴 휴식을 시작했습니다." : "짧은 휴식을 시작했습니다.";
+      pauseVideo();
+      renderTimer();
+      runTimer();
+    }
+
+    function moveToNextPhase() {
+      if (state.phase === "focus") {
+        startBreak(false);
+        return;
+      }
+
+      if (state.phase === "shortBreak" || state.phase === "longBreak") {
+        state.focusRound = state.phase === "longBreak" ? 1 : Math.min(4, state.focusRound + 1);
+        startFocus();
+        return;
+      }
+
+      startFocus();
+    }
+
+    function stopTimer() {
+      clearInterval(state.timerId);
+      state.timerId = null;
+      state.phase = "idle";
+      state.secondsLeft = state.preset.focus * 60;
+      elements.timerStatus.textContent = "타이머를 정지했습니다.";
+      elements.restOverlay.classList.remove("active");
+      renderTimer();
+    }
+
+    function addTask(title = "") {
+      const task = document.createElement("article");
+      task.className = "task";
+
+      const row = document.createElement("div");
+      row.className = "task-main";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.setAttribute("aria-label", "완료");
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = title;
+      input.placeholder = "할 일";
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "삭제";
+      removeButton.setAttribute("aria-label", "삭제");
+      removeButton.addEventListener("click", () => task.remove());
+
+      const memo = document.createElement("textarea");
+      memo.placeholder = "짧은 메모";
+
+      row.append(checkbox, input, removeButton);
+      task.append(row, memo);
+      elements.checklist.appendChild(task);
+    }
+
+    function resetPrototype() {
+      stopTimer();
+      elements.youtubeUrl.value = "";
+      elements.videoStatus.textContent = state.apiReady ? "초기화했습니다. 링크를 다시 넣으세요." : "초기화했습니다. YouTube API를 불러오는 중입니다.";
+      elements.manualPlay.hidden = true;
+      elements.checklist.innerHTML = "";
+      addTask("오늘 볼 영상 정하기");
+      addTask("집중 중 처리할 작업 1개 정하기");
+
+      if (state.player) {
+        state.player.destroy();
+        state.player = null;
+        state.playerReady = false;
+        state.currentVideoId = null;
+        elements.videoShell.innerHTML = '<div id="player"><div class="empty-player">YouTube 링크를 넣고 불러오기를 누르세요.</div></div>';
+      }
+    }
+
+    elements.loadVideo.addEventListener("click", loadVideo);
+    elements.youtubeUrl.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") loadVideo();
+    });
+    elements.playVideo.addEventListener("click", tryPlayVideo);
+    elements.manualPlay.addEventListener("click", tryPlayVideo);
+    elements.pauseVideo.addEventListener("click", pauseVideo);
+    elements.preset25.addEventListener("click", () => setPreset(25, 5, 15));
+    elements.preset50.addEventListener("click", () => setPreset(50, 10, 30));
+    elements.preset90.addEventListener("click", () => setPreset(90, 15, 45));
+    elements.startFocus.addEventListener("click", startFocus);
+    elements.stopTimer.addEventListener("click", stopTimer);
+    elements.addTask.addEventListener("click", () => addTask());
+    elements.resetButton.addEventListener("click", resetPrototype);
+    elements.miniToggle.addEventListener("click", () => elements.miniPlayer.classList.add("active"));
+    elements.closeMini.addEventListener("click", () => elements.miniPlayer.classList.remove("active"));
+
+    addTask("오늘 볼 영상 정하기");
+    addTask("집중 중 처리할 작업 1개 정하기");
+    renderTimer();
+    loadYouTubeApi();
+  </script>
+</body>
+</html>
+
+
